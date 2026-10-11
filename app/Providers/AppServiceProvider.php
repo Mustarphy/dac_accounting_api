@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Models\AccountingRequest;
+use App\Policies\AccountingRequestPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -28,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Gate::policy(AccountingRequest::class, AccountingRequestPolicy::class);
+
         RateLimiter::for('login', fn ($request) => Limit::perMinute(5)->by(strtolower((string) $request->input('email')).'|'.$request->ip()));
 
         RateLimiter::for('register', fn ($request) => Limit::perMinute(5)->by($request->ip()));
@@ -39,5 +44,7 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('resend-verification', fn ($request) => Limit::perMinute(2)->by($request->user()?->id ?? $request->ip()));
 
         RateLimiter::for('verify-email', fn ($request) => Limit::perMinute(10)->by($request->ip()));
+
+        RateLimiter::for('document-upload', fn ($request) => Limit::perMinute(20)->by($request->user()?->id ?? $request->ip()));
     }
 }
