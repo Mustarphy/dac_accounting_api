@@ -10,6 +10,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
@@ -48,6 +49,24 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function isClient(): bool
     {
         return $this->role === UserRole::Client;
+    }
+
+    /**
+     * Admin and Staff are both "staff-side" roles for authorization
+     * purposes (see the `role:admin,staff` middleware on every
+     * /api/v1/staff/* route) — they differ only in what the future
+     * permission model allows within the panel, not whether they can
+     * reach it at all.
+     */
+    public function isStaffMember(): bool
+    {
+        return $this->isAdmin() || $this->isStaff();
+    }
+
+    /** Only meaningful when role=client, but available on any User. */
+    public function accountingRequests(): HasMany
+    {
+        return $this->hasMany(AccountingRequest::class, 'client_id');
     }
 
     /**

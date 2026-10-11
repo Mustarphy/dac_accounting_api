@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\V1\Auth;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
@@ -24,11 +25,18 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = User::create([
+        // forceFill the role explicitly rather than leaving it to the
+        // column's DB default: the in-memory $user below is used
+        // immediately (UserResource reads ->role->value in the response),
+        // and Eloquent doesn't sync a column default back after insert —
+        // the exact bug class documented in docs/backend-setup.md §9.
+        $user = new User;
+        $user->forceFill([
             'name' => $request->validated('name'),
             'email' => $request->validated('email'),
             'password' => $request->validated('password'),
-        ]);
+            'role' => UserRole::Client,
+        ])->save();
 
         $user->sendEmailVerificationNotification();
 

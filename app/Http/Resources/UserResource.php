@@ -6,11 +6,12 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * Matches the frontend's AuthUser type exactly (id, name, email,
- * emailVerifiedAt) — see dac-accounting-frontend/src/lib/auth/types.ts.
- * Deliberately excludes password, role, and everything else: the
- * frontend never needs them, and the fewer fields a user-info endpoint
- * returns the smaller the blast radius if a response ever leaks.
+ * Matches the frontend's AuthUser type exactly — see
+ * dac-accounting-frontend/src/lib/auth/types.ts. `role` was added so the
+ * frontend can decide whether to render the admin panel shell; this is a
+ * UI convenience only, never the security boundary — every
+ * /api/v1/staff/* route is independently gated by the `role:admin,staff`
+ * middleware server-side regardless of what this response says.
  */
 class UserResource extends JsonResource
 {
@@ -21,6 +22,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'emailVerifiedAt' => $this->email_verified_at?->toISOString(),
+            'role' => $this->role->value,
         ];
     }
 }

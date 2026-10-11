@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 
 /**
@@ -10,9 +11,14 @@ use Illuminate\Http\JsonResponse;
  * failure (see bootstrap/app.php's exception rendering for the failure
  * side). Keeps individual controllers from each inventing their own
  * response shape.
+ *
+ * Also pulls in AuthorizesRequests for $this->authorize() — Laravel 13's
+ * base Illuminate\Routing\Controller no longer includes it by default.
  */
 abstract class Controller
 {
+    use AuthorizesRequests;
+
     protected function success(mixed $data = null, string $message = '', int $status = 200): JsonResponse
     {
         return response()->json([

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -30,6 +31,11 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            // Explicit, not left to the column default — a factory-made
+            // User is used immediately in tests (e.g. $user->role->value)
+            // without always re-fetching, and Eloquent doesn't sync a DB
+            // default back into an in-memory model after insert.
+            'role' => UserRole::Client,
         ];
     }
 
